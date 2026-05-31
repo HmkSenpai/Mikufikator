@@ -1,6 +1,6 @@
 import { Client, handle_file } from '@gradio/client'
 
-const SPACE = 'Onise/Qwen-Image-Edit-2509-LoRAs-Fast2'
+const SPACE = 'prithivMLmods/Qwen-Image-Edit-2509-LoRAs-Fast'
 
 export class ApiError extends Error {
   constructor(
@@ -28,12 +28,11 @@ export async function generateImage(
       const result = await app.predict('/infer', [
         handle_file(imageFile),
         prompt,
+        'Photo-to-Anime',
         0,
         true,
         1.0,
         4,
-        'worst quality, low quality, bad anatomy, text, watermark',
-        null, 1.0, null, 1.0, null, 1.0, null, 1.0, null, 1.0, null, 1.0,
       ])
 
       const output = (result.data as unknown[])[0]
