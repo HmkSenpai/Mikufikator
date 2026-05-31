@@ -34,7 +34,7 @@ export async function generateImage(
       }
 
       const uploaded: { url: string }[] = await uploadRes.json()
-      const fileRef = { path: SPACE_HOST + uploaded[0].url }
+      const fileRef = { path: uploaded[0].url }
 
       const inferRes = await fetch(`${SPACE_HOST}/gradio_api/call/infer`, {
         method: 'POST',
@@ -80,33 +80,65 @@ export async function generateImage(
   }
 }
 
-function waitForEvent(eventId: string): Promise<unknown> {
+async function waitForEvent(eventId: string): Promise<unknown> {
+  const url = `${SPACE_HOST}/gradio_api/call/infer/${eventId}`
+  const response = await fetch(url)
+  const reader = response.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
   return new Promise((resolve, reject) => {
-    const url = `${SPACE_HOST}/gradio_api/call/infer/${eventId}`
-    const es = new EventSource(url)
+    let eventType = ''
+    let timedOut = false
 
     const timeout = setTimeout(() => {
-      es.close()
+      timedOut = true
+      reader.cancel()
       reject(new ApiError("Temps d'attente depasse (3 min)", 408))
     }, 180_000)
 
-    es.addEventListener('complete', (e) => {
-      clearTimeout(timeout)
-      es.close()
-      try {
-        const data = JSON.parse(e.data)
-        resolve(data[0])
-      } catch {
-        reject(new ApiError('Erreur de parsing du resultat'))
-      }
-    })
+    function pump(): void {
+      reader.read().then(({ done, value }) => {
+        if (timedOut) return
+        if (done) {
+          clearTimeout(timeout)
+          reject(new ApiError('Connexion fermee prematurement'))
+          return
+        }
 
-    es.onerror = () => {
-      if (es.readyState === EventSource.CLOSED) {
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split('\n')
+
+        for (let i = 0; i < parts.length - 1; i++) {
+          const line = parts[i].trim()
+
+          if (line.startsWith('event: ')) {
+            eventType = line.slice(7).trim()
+          } else if (line.startsWith('data: ')) {
+            const raw = line.slice(6)
+            if (eventType === 'complete') {
+              clearTimeout(timeout)
+              reader.cancel()
+              try {
+                resolve(JSON.parse(raw)[0])
+              } catch {
+                reject(new ApiError('Erreur de parsing SSE'))
+              }
+              return
+            }
+            eventType = ''
+          }
+        }
+
+        buffer = parts[parts.length - 1]
+        pump()
+      }).catch((err) => {
         clearTimeout(timeout)
-        reject(new ApiError('Connexion perdue avec le Space'))
-      }
+        reject(new ApiError('Erreur de lecture SSE: ' + err.message))
+      })
     }
+
+    pump()
   })
 }
 
