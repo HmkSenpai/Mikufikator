@@ -18,27 +18,27 @@ export default function History({
   if (items.length === 0) return null
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-cyan-100 dark:border-slate-700">
+    <div className="card transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-xs font-heading font-bold text-miku-muted uppercase tracking-wider flex items-center gap-2">
           <Clock className="w-4 h-4" />
           Historique
         </h3>
         <button
           onClick={onClear}
-          className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1 transition-colors cursor-pointer"
+          className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1 transition-colors cursor-pointer font-body"
         >
           <Trash2 className="w-3 h-3" />
           Tout effacer
         </button>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+      <div className="flex gap-3 overflow-x-auto pb-2">
         {items.map((item) => (
           <div key={item.id} className="relative shrink-0 group">
             <button
               onClick={() => onSelect(item)}
-              className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-transparent hover:border-miku transition-all cursor-pointer"
+              className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-transparent hover:border-miku transition-all duration-200 cursor-pointer"
             >
               <img
                 src={item.result}
@@ -54,7 +54,7 @@ export default function History({
             >
               <X className="w-3 h-3" />
             </button>
-            <p className="text-[9px] text-slate-400 text-center mt-1">
+            <p className="text-[9px] text-miku-muted text-center mt-1 font-body">
               {formatDate(item.timestamp)}
             </p>
           </div>

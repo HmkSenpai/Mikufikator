@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="mt-10 text-slate-300 dark:text-slate-600 text-[10px] tracking-widest text-center">
+    <footer className="mt-10 text-slate-300 dark:text-slate-600 text-[10px] tracking-widest text-center font-body">
       by{' '}
       <a
         href="https://github.com/Hmksenpai"

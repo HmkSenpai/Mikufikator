@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Upload, ImageIcon, X } from 'lucide-react'
-import { readFileAsBase64, readFileAsDataURL, compressImage } from '../lib/imageUtils'
+import { readFileAsDataURL, compressImage } from '../lib/imageUtils'
 import { MAX_IMAGE_SIZE } from '../lib/constants'
 
 interface ImageUploaderProps {
@@ -17,7 +17,6 @@ export default function ImageUploader({
   onClear,
 }: ImageUploaderProps) {
   const [dragOver, setDragOver] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
   const [processing, setProcessing] = useState(false)
 
   const processFile = useCallback(
@@ -74,22 +73,18 @@ export default function ImageUploader({
   const handleDragLeave = useCallback(() => setDragOver(false), [])
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-cyan-100 dark:border-slate-700">
-      <h2 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+    <div className="card card-press transition-all duration-200">
+      <h2 className="text-lg font-heading font-bold text-miku-text dark:text-slate-100 mb-4 flex items-center gap-2">
         <ImageIcon className="w-5 h-5 text-miku" />
-        Étape 1 : Choisir une image
+        Choisir une image
       </h2>
 
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`aspect-square w-full border-4 border-dashed rounded-3xl relative flex items-center justify-center overflow-hidden transition-all duration-300 ${
-          dragOver
-            ? 'border-miku bg-miku/5 scale-[1.02]'
-            : previewUrl
-              ? 'border-slate-200 dark:border-slate-600'
-              : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50'
+        className={`dropzone aspect-square w-full relative flex items-center justify-center overflow-hidden ${
+          dragOver ? 'dropzone-drag' : previewUrl ? 'dropzone-filled' : 'dropzone-idle'
         }`}
       >
         {previewUrl ? (
@@ -114,18 +109,16 @@ export default function ImageUploader({
             {processing ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="w-10 h-10 border-3 border-miku border-t-transparent rounded-full animate-spin" />
-                <p className="text-slate-400 text-sm">Compression...</p>
+                <p className="text-miku-muted text-sm">Compression...</p>
               </div>
             ) : (
               <>
                 <Upload className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-400 dark:text-slate-500 text-sm">
-                  {dragOver
-                    ? 'Déposez ici...'
-                    : 'Cliquez ou glissez une image'}
+                <p className="text-miku-muted text-sm">
+                  {dragOver ? 'Déposez ici...' : 'Cliquez ou glissez une image'}
                 </p>
                 <p className="text-slate-300 dark:text-slate-600 text-[10px] mt-1">
-                  Humain, chat, objet... tout fonctionne&nbsp;!
+                  Humain, chat, objet... tout fonctionne
                 </p>
               </>
             )}
@@ -133,7 +126,6 @@ export default function ImageUploader({
         )}
 
         <input
-          ref={inputRef}
           type="file"
           accept="image/*"
           onChange={handleFile}

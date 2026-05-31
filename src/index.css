@@ -6,45 +6,78 @@
   --color-miku: #39C5BB;
   --color-miku-dark: #2baaa1;
   --color-miku-light: #7eddd6;
+  --color-miku-bg: #EEF2FF;
+  --color-miku-bg-dark: #0F172A;
+  --color-miku-surface: #FFFFFF;
+  --color-miku-surface-dark: #1E293B;
+  --color-miku-text: #1E1B4B;
+  --color-miku-muted: #64748B;
+  --font-heading: 'Fredoka', sans-serif;
+  --font-body: 'Nunito', sans-serif;
 }
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
   body {
     @apply m-0 antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-slate-800/90 rounded-3xl border-2 border-slate-200 dark:border-slate-700 p-6 shadow-[0_8px_0_0_#cbd5e1] dark:shadow-[0_8px_0_0_#334155];
   }
 
-  .dark body {
-    @apply bg-slate-950 text-slate-100;
+  .card-pressed {
+    @apply active:translate-y-1 active:shadow-[0_4px_0_0_#cbd5e1] dark:active:shadow-[0_4px_0_0_#334155] transition-all duration-150;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:shadow-[0_10px_0_0_#cbd5e1] dark:hover:shadow-[0_10px_0_0_#334155] transition-all duration-200;
+  }
+
+  .btn-miku {
+    @apply bg-miku text-white font-bold rounded-2xl border-2 border-miku-dark shadow-[0_5px_0_0_#2baaa1] active:translate-y-1 active:shadow-[0_2px_0_0_#2baaa1] transition-all duration-150;
+  }
+
+  .btn-miku:disabled {
+    @apply bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 shadow-[0_5px_0_0_#cbd5e1] dark:shadow-[0_5px_0_0_#334155] opacity-60;
+  }
+
+  .btn-dark {
+    @apply bg-slate-800 dark:bg-slate-700 text-white font-bold rounded-2xl border-2 border-slate-700 dark:border-slate-600 shadow-[0_5px_0_0_#334155] dark:shadow-[0_5px_0_0_#475569] active:translate-y-1 active:shadow-[0_2px_0_0_#334155] dark:active:shadow-[0_2px_0_0_#475569] transition-all duration-150;
+  }
+
+  .dropzone {
+    @apply border-4 border-dashed rounded-3xl transition-all duration-300;
+  }
+
+  .dropzone-idle {
+    @apply border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/30;
+  }
+
+  .dropzone-drag {
+    @apply border-miku bg-miku/5 scale-[1.02];
+  }
+
+  .dropzone-filled {
+    @apply border-slate-200 dark:border-slate-600;
   }
 }
 
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .animate-fade-in-up {
@@ -53,4 +86,8 @@
 
 .animate-scale-in {
   animation: scale-in 0.4s ease-out both;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }

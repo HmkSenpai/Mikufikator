@@ -21,10 +21,10 @@ export default function ResultPanel({
   onDownload,
 }: ResultPanelProps) {
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-cyan-100 dark:border-slate-700 flex flex-col">
-      <h2 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+    <div className="card transition-all duration-200 flex flex-col">
+      <h2 className="text-lg font-heading font-bold text-miku-text dark:text-slate-100 mb-4 flex items-center gap-2">
         <Music className="w-5 h-5 text-miku" />
-        Étape 2 : Résultat final
+        Resultat final
       </h2>
 
       <div className="flex-1 aspect-square w-full border-2 border-slate-100 dark:border-slate-700 rounded-3xl relative flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
@@ -41,7 +41,7 @@ export default function ResultPanel({
               )}
             </div>
             <div className="text-center">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+              <p className="text-miku-muted text-sm font-medium">
                 L'IA analyse la structure...
               </p>
               {retryAttempt > 0 && (
@@ -54,15 +54,15 @@ export default function ResultPanel({
         ) : result ? (
           <img
             src={result}
-            alt="Miku Result"
+            alt="Resultat Miku"
             className="w-full h-full object-contain animate-scale-in"
           />
         ) : (
           <div className="text-center p-8">
             <Sparkles className="w-10 h-10 text-slate-200 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-300 dark:text-slate-500 text-sm">
+            <p className="text-slate-300 dark:text-slate-500 text-sm font-body">
               {hasImage
-                ? 'Prêt pour la transformation !'
+                ? 'Pret pour la transformation'
                 : 'En attente d\'une image...'}
             </p>
           </div>
@@ -72,10 +72,10 @@ export default function ResultPanel({
       <button
         onClick={onGenerate}
         disabled={!hasImage || status === 'loading'}
-        className={`mt-6 w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all cursor-pointer ${
+        className={`mt-6 w-full py-4 text-lg font-heading font-bold flex items-center justify-center gap-3 cursor-pointer ${
           !hasImage || status === 'loading'
-            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'
-            : 'bg-miku text-white shadow-md hover:bg-miku-dark active:scale-95'
+            ? 'btn-miku:disabled'
+            : 'btn-miku'
         }`}
       >
         {status === 'loading' ? (
@@ -86,14 +86,14 @@ export default function ResultPanel({
         {status === 'loading'
           ? 'Traitement...'
           : status === 'success'
-            ? 'Regénérer'
+            ? 'Regenerer'
             : 'Ajouter les cheveux'}
       </button>
 
       {result && (
         <button
           onClick={onDownload}
-          className="mt-3 w-full py-3.5 bg-slate-800 dark:bg-slate-700 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-700 dark:hover:bg-slate-600 transition-all cursor-pointer"
+          className="mt-3 w-full py-3.5 text-base font-heading font-bold flex items-center justify-center gap-3 cursor-pointer btn-dark"
         >
           <Download className="w-5 h-5" />
           Enregistrer l'image
@@ -101,7 +101,7 @@ export default function ResultPanel({
       )}
 
       {error && (
-        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs border border-red-100 dark:border-red-800 text-center flex items-start gap-2">
+        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-xs border-2 border-red-100 dark:border-red-800/50 text-center flex items-start gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
