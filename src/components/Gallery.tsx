@@ -33,7 +33,7 @@ export default function Gallery({ onSelect, disabled }: GalleryProps) {
         ))}
       </div>
       <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-2 text-center font-body">
-        Cliquez pour essayer
+        Essayez sur ces images
       </p>
     </div>
   )

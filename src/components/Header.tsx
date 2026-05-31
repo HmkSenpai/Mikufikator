@@ -60,7 +60,7 @@ export default function Header({ dark, onToggleDark }: HeaderProps) {
         </h1>
       </div>
       <p className="text-miku-muted text-sm md:text-base font-body">
-        Transformez n'importe quelle image avec les couettes de Miku
+        Transformez n'importe quelle image en Miku :D
       </p>
     </header>
   )

@@ -100,8 +100,7 @@ export default function App() {
             <div className="flex gap-3">
               <Info className="w-5 h-5 text-miku shrink-0 mt-0.5" />
               <p className="text-xs text-miku-muted leading-relaxed font-body">
-                Glissez une photo, cliquez sur "Ajouter les cheveux", et l'IA
-                de Qwen-Image-Edit pose les couettes de Miku sur votre sujet.
+                Glissez une photo et mikufiez-la
                 (1er appel ~30s le temps que le GPU se reveille)
               </p>
             </div>

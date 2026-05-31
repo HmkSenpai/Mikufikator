@@ -118,7 +118,7 @@ export default function ImageUploader({
                   {dragOver ? 'Déposez ici...' : 'Cliquez ou glissez une image'}
                 </p>
                 <p className="text-slate-300 dark:text-slate-600 text-[10px] mt-1">
-                  Humain, chat, objet... tout fonctionne
+                  Humain, chat, objet... tout se mikufie
                 </p>
               </>
             )}

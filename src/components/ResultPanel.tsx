@@ -24,7 +24,7 @@ export default function ResultPanel({
     <div className="card transition-all duration-200 flex flex-col">
       <h2 className="text-lg font-heading font-bold text-miku-text dark:text-slate-100 mb-4 flex items-center gap-2">
         <Music className="w-5 h-5 text-miku" />
-        Resultat final
+        Mikufication
       </h2>
 
       <div className="flex-1 aspect-square w-full border-2 border-slate-100 dark:border-slate-700 rounded-3xl relative flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
@@ -42,7 +42,7 @@ export default function ResultPanel({
             </div>
             <div className="text-center">
               <p className="text-miku-muted text-sm font-medium">
-                L'IA analyse la structure...
+                Miku Miku Beam~
               </p>
               {retryAttempt > 0 && (
                 <p className="text-slate-400 text-xs mt-1">
@@ -54,7 +54,7 @@ export default function ResultPanel({
         ) : result ? (
           <img
             src={result}
-            alt="Resultat Miku"
+            alt="Mikufiee"
             className="w-full h-full object-contain animate-scale-in"
           />
         ) : (
@@ -62,7 +62,7 @@ export default function ResultPanel({
             <Sparkles className="w-10 h-10 text-slate-200 dark:text-slate-600 mx-auto mb-3" />
             <p className="text-slate-300 dark:text-slate-500 text-sm font-body">
               {hasImage
-                ? 'Pret pour la transformation'
+                ? 'Prete pour la mikufication'
                 : 'En attente d\'une image...'}
             </p>
           </div>
@@ -84,10 +84,10 @@ export default function ResultPanel({
           <Sparkles className="w-6 h-6" />
         )}
         {status === 'loading'
-          ? 'Traitement...'
+          ? 'Miku Miku Beam~'
           : status === 'success'
-            ? 'Regenerer'
-            : 'Ajouter les cheveux'}
+            ? 'Re-mikufier'
+            : 'Mikufier'}
       </button>
 
       {result && (
@@ -96,7 +96,7 @@ export default function ResultPanel({
           className="mt-3 w-full py-3.5 text-base font-heading font-bold flex items-center justify-center gap-3 cursor-pointer btn-dark"
         >
           <Download className="w-5 h-5" />
-          Enregistrer l'image
+          Telecharger
         </button>
       )}
 
