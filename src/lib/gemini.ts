@@ -10,6 +10,13 @@ export class ApiError extends Error {
   }
 }
 
+function base64ToBlob(b64: string): Blob {
+  const bin = atob(b64)
+  const u8 = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i)
+  return new Blob([u8], { type: 'image/jpeg' })
+}
+
 export async function generateImage(
   imageBase64: string,
   prompt: string,
@@ -20,7 +27,7 @@ export async function generateImage(
 
   while (true) {
     try {
-      const imgBlob = await (await fetch(imageBase64)).blob()
+      const imgBlob = base64ToBlob(imageBase64)
 
       const uploadForm = new FormData()
       uploadForm.append('files', imgBlob, 'image.jpg')
