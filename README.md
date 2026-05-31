@@ -1,6 +1,6 @@
 # Mikuficator
 
-Transformez n'importe quelle image en ajoutant les couettes iconiques de Hatsune Miku grace a l'IA Gemini.
+Transformez n'importe quelle image en Hatsune Miku
 
 ## Fonctionnalites
 
