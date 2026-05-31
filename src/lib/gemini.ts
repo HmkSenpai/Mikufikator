@@ -1,26 +1,13 @@
-import { API_MODEL } from './constants'
+const SPACE_HOST = 'https://onise-qwen-image-edit-2509-loras-fast2.hf.space'
 
-const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-
-export class GeminiError extends Error {
+export class ApiError extends Error {
   constructor(
     message: string,
     public code?: number,
   ) {
     super(message)
-    this.name = 'GeminiError'
+    this.name = 'ApiError'
   }
-}
-
-interface GeminiResponse {
-  candidates?: {
-    content?: {
-      parts?: (
-        | { text: string }
-        | { inlineData: { mimeType: string; data: string } }
-      )[]
-    }
-  }[]
 }
 
 export async function generateImage(
@@ -28,71 +15,128 @@ export async function generateImage(
   prompt: string,
   onRetry?: (attempt: number, delay: number) => void,
 ): Promise<string> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-
-  if (!apiKey) {
-    throw new GeminiError(
-      'Clé API manquante. Copiez .env.example en .env et ajoutez votre clé.',
-    )
-  }
-
-  const payload = {
-    contents: [
-      {
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
-        ],
-      },
-    ],
-    generationConfig: {
-      responseModalities: ['TEXT', 'IMAGE'],
-    },
-  }
-
-  const delays = [1000, 2000, 4000, 8000, 16000]
+  const delays = [8000, 15000, 30000, 60000]
   let attempt = 0
 
   while (true) {
-    const response = await fetch(
-      `${API_BASE}/${API_MODEL}:generateContent?key=${apiKey}`,
-      {
+    try {
+      const imgBlob = await (await fetch(imageBase64)).blob()
+
+      const uploadForm = new FormData()
+      uploadForm.append('files', imgBlob, 'image.jpg')
+
+      const uploadRes = await fetch(`${SPACE_HOST}/gradio_api/upload`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      },
-    )
+        body: uploadForm,
+      })
 
-    if (response.ok) {
-      const result: GeminiResponse = await response.json()
-      const data = result.candidates?.[0]?.content?.parts?.find(
-        (p) => 'inlineData' in p,
-      )?.inlineData?.data
-
-      if (data) {
-        return `data:image/png;base64,${data}`
+      if (!uploadRes.ok) {
+        const body = await uploadRes.text().catch(() => '')
+        throw new ApiError(`Upload: ${uploadRes.status}`, uploadRes.status)
       }
 
-      const text = result.candidates?.[0]?.content?.parts?.find(
-        (p) => 'text' in p,
-      ) as { text: string } | undefined
+      const uploaded: { url: string }[] = await uploadRes.json()
+      const fileRef = { path: SPACE_HOST + uploaded[0].url }
 
-      throw new GeminiError(
-        text?.text || "L'IA n'a pas pu générer l'image. Réessayez.",
-      )
+      const inferRes = await fetch(`${SPACE_HOST}/gradio_api/call/infer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: [
+            fileRef,
+            prompt,
+            0,
+            true,
+            1.0,
+            4,
+            'worst quality, low quality, bad anatomy, text, watermark',
+            null, 1.0,
+            null, 1.0,
+            null, 1.0,
+            null, 1.0,
+            null, 1.0,
+            null, 1.0,
+          ],
+        }),
+      })
+
+      if (!inferRes.ok) {
+        const body = await inferRes.text().catch(() => '')
+        const is503 = inferRes.status === 503
+        throw new ApiError(
+          is503 ? 'Le GPU demarre' : `Erreur ${inferRes.status}`,
+          is503 ? 503 : inferRes.status,
+        )
+      }
+
+      const { event_id } = await inferRes.json()
+
+      for (let i = 0; i < 180; i++) {
+        const pollRes = await fetch(
+          `${SPACE_HOST}/gradio_api/call/infer/${event_id}`,
+        )
+
+        const text = await pollRes.text()
+
+        if (text.includes('event: complete')) {
+          const match = text.match(/data:\s*(\[.*?\])\s*\n/)
+          if (match) {
+            const parsed = JSON.parse(match[1])
+            const output = parsed?.[0]
+            return await resolveOutput(output)
+          }
+        }
+
+        if (pollRes.status === 503) {
+          throw new ApiError('Le GPU demarre (30-60s)', 503)
+        }
+
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+
+      throw new ApiError('Temps depasse (3 min)')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.code === 503 && attempt < delays.length) {
+          onRetry?.(attempt + 1, Math.round(delays[attempt] / 1000))
+          await new Promise((r) => setTimeout(r, delays[attempt]))
+          attempt++
+          continue
+        }
+        throw err
+      }
+      if (err instanceof Error) throw new ApiError(err.message)
+      throw new ApiError('Une erreur est survenue')
     }
-
-    if (attempt >= delays.length) {
-      const body = await response.json().catch(() => null)
-      throw new GeminiError(
-        body?.error?.message || 'Erreur de connexion. Veuillez réessayer.',
-        response.status,
-      )
-    }
-
-    const delay = delays[attempt]
-    onRetry?.(attempt + 1, delay)
-    await new Promise((r) => setTimeout(r, delay))
-    attempt++
   }
+}
+
+async function resolveOutput(output: unknown): Promise<string> {
+  if (typeof output === 'string') {
+    if (output.startsWith('http')) {
+      const r = await fetch(output)
+      const b = await r.blob()
+      return await blobToDataURL(b)
+    }
+    return output
+  }
+  if (output && typeof output === 'object') {
+    const obj = output as Record<string, unknown>
+    const url = obj.url || (obj as any).path
+    if (typeof url === 'string') {
+      const fullUrl = url.startsWith('http') ? url : SPACE_HOST + url
+      const r = await fetch(fullUrl)
+      const b = await r.blob()
+      return await blobToDataURL(b)
+    }
+  }
+  throw new ApiError('Format reponse: ' + JSON.stringify(output).slice(0, 200))
+}
+
+function blobToDataURL(blob: Blob): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.readAsDataURL(blob)
+  })
 }

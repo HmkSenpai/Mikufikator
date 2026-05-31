@@ -83,28 +83,9 @@ export default function App() {
     [],
   )
 
-  const apiKeyMissing = useMemo(
-    () => !import.meta.env.VITE_GEMINI_API_KEY,
-    [],
-  )
-
   return (
     <div className="min-h-screen bg-miku-bg dark:bg-miku-bg-dark flex flex-col items-center p-4 md:p-8 transition-colors duration-300">
       <Header dark={dark} onToggleDark={toggleDark} />
-
-      {apiKeyMissing && (
-        <div className="max-w-6xl w-full mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-2xl text-amber-700 dark:text-amber-400 text-sm flex items-center gap-3 shadow-[0_4px_0_0_#fcd34d] dark:shadow-[0_4px_0_0_#92400e]">
-          <Info className="w-5 h-5 shrink-0" />
-          <span className="font-body">
-            <strong>Cle API manquante.</strong> Copiez le fichier{' '}
-            <code className="bg-amber-100 dark:bg-amber-800 px-1 rounded">
-              .env.example
-            </code>{' '}
-            en <code className="bg-amber-100 dark:bg-amber-800 px-1 rounded">.env</code>{' '}
-            et ajoutez votre cle Gemini.
-          </span>
-        </div>
-      )}
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
@@ -119,8 +100,9 @@ export default function App() {
             <div className="flex gap-3">
               <Info className="w-5 h-5 text-miku shrink-0 mt-0.5" />
               <p className="text-xs text-miku-muted leading-relaxed font-body">
-                Glissez une photo, cliquez sur "Ajouter les cheveux", et laissez
-                l'IA poser les couettes de Miku sur votre sujet.
+                Glissez une photo, cliquez sur "Ajouter les cheveux", et l'IA
+                de Qwen-Image-Edit pose les couettes de Miku sur votre sujet.
+                (1er appel ~30s le temps que le GPU se reveille)
               </p>
             </div>
           </div>

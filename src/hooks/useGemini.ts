@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
-import { generateImage, GeminiError } from '../lib/gemini'
+import { generateImage, ApiError } from '../lib/gemini'
 import type { Status } from '../types'
 
 export function useGemini() {
@@ -27,10 +27,13 @@ export function useGemini() {
         }
       } catch (err) {
         if (!abortRef.current) {
+          console.error('[Mikuficator]', err)
           const msg =
-            err instanceof GeminiError
+            err instanceof ApiError
               ? err.message
-              : 'Une erreur est survenue. Veuillez réessayer.'
+              : err instanceof Error
+                ? err.message
+                : 'Une erreur est survenue.'
           setError(msg)
           setStatus('error')
         }
