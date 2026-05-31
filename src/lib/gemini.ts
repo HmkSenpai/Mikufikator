@@ -29,9 +29,7 @@ export async function generateImage(
         method: 'POST',
         body: uploadForm,
       })
-
       if (!uploadRes.ok) {
-        const body = await uploadRes.text().catch(() => '')
         throw new ApiError(`Upload: ${uploadRes.status}`, uploadRes.status)
       }
 
@@ -50,18 +48,11 @@ export async function generateImage(
             1.0,
             4,
             'worst quality, low quality, bad anatomy, text, watermark',
-            null, 1.0,
-            null, 1.0,
-            null, 1.0,
-            null, 1.0,
-            null, 1.0,
-            null, 1.0,
+            null, 1.0, null, 1.0, null, 1.0, null, 1.0, null, 1.0, null, 1.0,
           ],
         }),
       })
-
       if (!inferRes.ok) {
-        const body = await inferRes.text().catch(() => '')
         const is503 = inferRes.status === 503
         throw new ApiError(
           is503 ? 'Le GPU demarre' : `Erreur ${inferRes.status}`,
@@ -71,30 +62,8 @@ export async function generateImage(
 
       const { event_id } = await inferRes.json()
 
-      for (let i = 0; i < 180; i++) {
-        const pollRes = await fetch(
-          `${SPACE_HOST}/gradio_api/call/infer/${event_id}`,
-        )
-
-        const text = await pollRes.text()
-
-        if (text.includes('event: complete')) {
-          const match = text.match(/data:\s*(\[.*?\])\s*\n/)
-          if (match) {
-            const parsed = JSON.parse(match[1])
-            const output = parsed?.[0]
-            return await resolveOutput(output)
-          }
-        }
-
-        if (pollRes.status === 503) {
-          throw new ApiError('Le GPU demarre (30-60s)', 503)
-        }
-
-        await new Promise((r) => setTimeout(r, 1000))
-      }
-
-      throw new ApiError('Temps depasse (3 min)')
+      const output = await waitForEvent(event_id)
+      return await resolveOutput(output)
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === 503 && attempt < delays.length) {
@@ -111,23 +80,51 @@ export async function generateImage(
   }
 }
 
+function waitForEvent(eventId: string): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const url = `${SPACE_HOST}/gradio_api/call/infer/${eventId}`
+    const es = new EventSource(url)
+
+    const timeout = setTimeout(() => {
+      es.close()
+      reject(new ApiError("Temps d'attente depasse (3 min)", 408))
+    }, 180_000)
+
+    es.addEventListener('complete', (e) => {
+      clearTimeout(timeout)
+      es.close()
+      try {
+        const data = JSON.parse(e.data)
+        resolve(data[0])
+      } catch {
+        reject(new ApiError('Erreur de parsing du resultat'))
+      }
+    })
+
+    es.onerror = () => {
+      if (es.readyState === EventSource.CLOSED) {
+        clearTimeout(timeout)
+        reject(new ApiError('Connexion perdue avec le Space'))
+      }
+    }
+  })
+}
+
 async function resolveOutput(output: unknown): Promise<string> {
   if (typeof output === 'string') {
     if (output.startsWith('http')) {
       const r = await fetch(output)
-      const b = await r.blob()
-      return await blobToDataURL(b)
+      return blobToDataURL(await r.blob())
     }
     return output
   }
   if (output && typeof output === 'object') {
     const obj = output as Record<string, unknown>
-    const url = obj.url || (obj as any).path
-    if (typeof url === 'string') {
+    const url = (obj.url || (obj as any).path) as string | undefined
+    if (url) {
       const fullUrl = url.startsWith('http') ? url : SPACE_HOST + url
       const r = await fetch(fullUrl)
-      const b = await r.blob()
-      return await blobToDataURL(b)
+      return blobToDataURL(await r.blob())
     }
   }
   throw new ApiError('Format reponse: ' + JSON.stringify(output).slice(0, 200))
