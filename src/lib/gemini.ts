@@ -24,8 +24,9 @@ export async function generateImage(
     try {
       const app = await Client.connect(SPACE)
 
+      const imageFile = new File([base64ToBlob(imageBase64)], 'image.jpg', { type: 'image/jpeg' })
       const result = await app.predict('/infer', [
-        handle_file(base64ToBlob(imageBase64)),
+        handle_file(imageFile),
         prompt,
         0,
         true,
