@@ -41,11 +41,17 @@ export async function generateImage(
 
       return await resolveOutput(output)
     } catch (err) {
-      if (err instanceof ApiError) {
-        const is503 =
-          err.code === 503 || err.message.includes('loading')
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'string'
+            ? err
+            : err instanceof Object
+              ? JSON.stringify(err)
+              : String(err)
 
-        if (is503 && attempt < delays.length) {
+      if (err instanceof ApiError) {
+        if ((err.code === 503 || msg.includes('loading')) && attempt < delays.length) {
           onRetry?.(attempt + 1, Math.round(delays[attempt] / 1000))
           await new Promise((r) => setTimeout(r, delays[attempt]))
           attempt++
@@ -53,8 +59,8 @@ export async function generateImage(
         }
         throw err
       }
-      if (err instanceof Error) throw new ApiError(err.message)
-      throw new ApiError('Une erreur est survenue')
+
+      throw new ApiError(msg)
     }
   }
 }
