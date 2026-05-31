@@ -1,4 +1,4 @@
-import { Client, handle_file } from '@gradio/client'
+import { Client } from '@gradio/client'
 
 const SPACE = 'prithivMLmods/Qwen-Image-Edit-2509-LoRAs-Fast'
 
@@ -24,9 +24,9 @@ export async function generateImage(
     try {
       const app = await Client.connect(SPACE)
 
-      const imageFile = new File([base64ToBlob(imageBase64)], 'image.jpg', { type: 'image/jpeg' })
+      const imageDataUrl = `data:image/jpeg;base64,${imageBase64}`
       const result = await app.predict('/infer', [
-        handle_file(imageFile),
+        imageDataUrl,
         prompt,
         'Photo-to-Anime',
         0,
@@ -62,13 +62,6 @@ export async function generateImage(
       throw new ApiError(msg)
     }
   }
-}
-
-function base64ToBlob(b64: string): Blob {
-  const bin = atob(b64)
-  const u8 = new Uint8Array(bin.length)
-  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i)
-  return new Blob([u8], { type: 'image/jpeg' })
 }
 
 async function resolveOutput(output: unknown): Promise<string> {
